@@ -18,6 +18,7 @@ import ru.mkhamkha.dmb.other.DmbException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 import static ru.mkhamkha.dmb.other.MessageText.*;
 
@@ -159,12 +160,19 @@ public class TelegramBot extends TelegramLongPollingBot {
         );
 
         if (remainingMessages.isEmpty()) {
-            for (int i = 0; i < allMessages.size(); i++) {
-                if (i != lastMessageIndex) {
-                    remainingMessages.add(i);
-                }
+            IntStream.range(0, allMessages.size())
+                    .filter(i -> i != lastMessageIndex)
+                    .forEach(remainingMessages::add);
+        }
+
+        if (remainingMessages.isEmpty()) {
+            IntStream.range(0, allMessages.size())
+                    .forEach(remainingMessages::add);
+            if (lastMessageIndex >= 0 && lastMessageIndex < allMessages.size()) {
+                remainingMessages.remove(Integer.valueOf(lastMessageIndex));
             }
         }
+
 
         Random random = new Random();
         int index = random.nextInt(remainingMessages.size());
@@ -174,12 +182,24 @@ public class TelegramBot extends TelegramLongPollingBot {
         return allMessages.get(messageIndex);
     }
 
+    /**
+     * Выбирает случайный мем из доступного набора, обеспечивая отсутствие повторов в текущем сеансе.
+     * Если все мемы уже были использованы, список перезаполняется, исключая последний выбранный мем.
+     *
+     * @return имя файла выбранного мема в формате "memas-{index}.jpg"
+     */
     private String selectMem() {
         if (remainingMemes.isEmpty()) {
-            for (int i = 0; i <= 10; i++) {
-                if (i != lastMemeIndex) {
-                    remainingMemes.add(i);
-                }
+            IntStream.rangeClosed(0, 10)
+                    .filter(i -> i != lastMemeIndex)
+                    .forEach(remainingMemes::add);
+        }
+
+        if (remainingMemes.isEmpty()) {
+            IntStream.rangeClosed(0, 10)
+                    .forEach(remainingMemes::add);
+            if (lastMemeIndex >= 0 && lastMemeIndex <= 10) {
+                remainingMemes.remove(Integer.valueOf(lastMemeIndex));
             }
         }
 
